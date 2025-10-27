@@ -1,0 +1,37 @@
+/.metadata/
+
+# Maven
+target/
+!.mvn/wrapper/maven-wrapper.jar
+**/logs/
+*.log
+
+# IDEs
+*.iml
+.idea/
+*.classpath
+*.project
+*.settings/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build
+build/
+out/
+
+# Environment
+.env
+*.properties.local
+*.yml.local
+
+# Lombok
+*.lombok.log
+
+# Others
+*.bak
+*.swp
+*.tmp
+
