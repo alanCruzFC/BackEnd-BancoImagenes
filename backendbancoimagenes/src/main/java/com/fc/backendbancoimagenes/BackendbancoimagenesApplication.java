@@ -16,16 +16,5 @@ public class BackendbancoimagenesApplication {
 		SpringApplication.run(BackendbancoimagenesApplication.class, args);
 		
 	}
-	@Bean
-	public CommandLineRunner init(UserRepository userRepository, PasswordEncoder passwordEncoder) {
-	    return args -> {
-	        if (userRepository.findByUsername("alan").isEmpty()) {
-	            Usuario user = new Usuario();
-	            user.setUsername("alan");
-	            user.setPassword(passwordEncoder.encode("123456789"));
-	            userRepository.save(user);
-	            
-	        }
-	    };
-	}
+	
 }
