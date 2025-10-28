@@ -19,12 +19,12 @@ public class BackendbancoimagenesApplication {
 	@Bean
 	public CommandLineRunner init(UserRepository userRepository, PasswordEncoder passwordEncoder) {
 	    return args -> {
-	        if (userRepository.findByUsername("admin").isEmpty()) {
+	        if (userRepository.findByUsername("alan").isEmpty()) {
 	            Usuario user = new Usuario();
-	            user.setUsername("admin");
-	            user.setPassword(passwordEncoder.encode("123456"));
+	            user.setUsername("alan");
+	            user.setPassword(passwordEncoder.encode("123456789"));
 	            userRepository.save(user);
-	            System.out.println("Usuario de prueba creado: admin / 123456");
+	            
 	        }
 	    };
 	}
