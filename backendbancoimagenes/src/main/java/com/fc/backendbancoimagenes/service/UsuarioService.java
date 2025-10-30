@@ -19,4 +19,10 @@ public class UsuarioService {
 		return usuarioRepository.findAll();
 	}
 
+	public void guardar(Usuario usuario) {
+		usuarioRepository.save(usuario);
+		
+	}
+	
+
 }
