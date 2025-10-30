@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -16,7 +17,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.fc.backendbancoimagenes.security.JwtAuthenticationFilter;
-import com.fc.backendbancoimagenes.service.CustomUserDetailsService;
+import com.fc.backendbancoimagenes.service.UsuarioDetailsService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -29,11 +30,12 @@ public class SecurityConfig {
     private JwtAuthenticationFilter jwtFilter;
 	
 	@Autowired
-    private CustomUserDetailsService userDetailsService;
+    private UsuarioDetailsService userDetailsService;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
+        	.cors(Customizer.withDefaults())
             .csrf(AbstractHttpConfigurer::disable)
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth

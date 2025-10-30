@@ -1,10 +1,8 @@
 package com.fc.backendbancoimagenes.repository;
 
-public class UsuarioRepository {
+import org.springframework.data.jpa.repository.JpaRepository;
 
-	public Object findByUsername(String username) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+import com.fc.backendbancoimagenes.model.Usuario;
 
+public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 }
