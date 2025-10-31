@@ -5,6 +5,7 @@ public class RegisterRequest {
     private String password;
     
     
+    
 	public String getUsername() {
 		return username;
 	}

@@ -6,6 +6,8 @@ import com.fc.backendbancoimagenes.model.LoginResponse;
 import com.fc.backendbancoimagenes.model.Usuario;
 import com.fc.backendbancoimagenes.repository.UserRepository;
 import com.fc.backendbancoimagenes.security.JwtService;
+import com.fc.backendbancoimagenes.service.PasswordAuditService;
+import com.fc.backendbancoimagenes.util.EncriptacionUtil;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,11 +28,17 @@ import org.springframework.web.bind.annotation.*;
 @CrossOrigin(origins = "http://localhost:4200")
 public class AuthController {
 
+    private final PasswordAuditService passwordAuditService;
+
     @Autowired
     private AuthenticationManager authManager;
 
     @Autowired
     private JwtService jwtService;
+
+    AuthController(PasswordAuditService passwordAuditService) {
+        this.passwordAuditService = passwordAuditService;
+    }
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody AuthRequest request) {
@@ -57,7 +65,7 @@ public class AuthController {
 
     @PostMapping("/nuevo")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<String> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<String> register(@RequestBody RegisterRequest request) throws Exception {
         if (userRepository.findByUsername(request.getUsername()).isPresent()) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("El usuario ya existe");
         }
@@ -66,6 +74,9 @@ public class AuthController {
         user.setUsername(request.getUsername());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         userRepository.save(user);
+        
+        String encrypted = EncriptacionUtil.Encriptacion(request.getPassword());
+        passwordAuditService.guardar(user.getId(), encrypted);
 
         return ResponseEntity.ok("Usuario creado exitosamente");
     }
