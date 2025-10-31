@@ -23,9 +23,10 @@ public class BackendbancoimagenesApplication {
 	        if (userRepository.findByUsername("admin").isEmpty()) {
 	            Usuario admin = new Usuario();
 	            admin.setUsername("admin");
-	            admin.setPassword(passwordEncoder.encode("admin123")); // usa encoder
+	            admin.setPassword(passwordEncoder.encode("admin123"));
 	            admin.setRol("admin");
 	            admin.setEmail("admin@bancoimagenes.com");
+	            admin.setActivo(true);
 	            //admin.setActivo(true);
 	            userRepository.save(admin);
 	            System.out.println("Usuario admin creado");

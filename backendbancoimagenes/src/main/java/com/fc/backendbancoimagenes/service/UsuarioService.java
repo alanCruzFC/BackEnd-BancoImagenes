@@ -1,6 +1,5 @@
 package com.fc.backendbancoimagenes.service;
 
-import java.util.Arrays;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import com.fc.backendbancoimagenes.model.Usuario;
@@ -20,6 +19,7 @@ public class UsuarioService {
 	}
 
 	public void guardar(Usuario usuario) {
+		usuario.setActivo(true);
 		usuarioRepository.save(usuario);
 		
 	}

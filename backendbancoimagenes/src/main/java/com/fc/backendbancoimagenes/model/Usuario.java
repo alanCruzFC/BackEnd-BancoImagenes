@@ -28,6 +28,9 @@ public class Usuario implements UserDetails {
     
     @Column(nullable = false)
     private String rol;
+    
+    @Column(nullable = false)
+    private boolean activo;
 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -94,6 +97,14 @@ public class Usuario implements UserDetails {
 
 	public void setPassword(String password) {
 		this.password = password;
+	}
+
+	public boolean isActivo() {
+		return activo;
+	}
+
+	public void setActivo(boolean activo) {
+		this.activo = activo;
 	}
     
     
