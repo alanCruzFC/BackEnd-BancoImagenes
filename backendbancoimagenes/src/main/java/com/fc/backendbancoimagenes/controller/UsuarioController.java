@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fc.backendbancoimagenes.dto.RegisterRequest;
 import com.fc.backendbancoimagenes.model.Usuario;
 import com.fc.backendbancoimagenes.service.UsuarioService;
 
@@ -33,13 +34,5 @@ public class UsuarioController {
 	@GetMapping
 	public List<Usuario> listar() {
 		return usuarioService.listar();
-	}
-	
-	@PostMapping("/nuevo")
-	@PreAuthorize("hasRole('ADMIN')")
-	public ResponseEntity<String> crearUsuario(@RequestBody Usuario usuario) {
-		usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
-		usuarioService.guardar(usuario);
-		return ResponseEntity.ok("Usuario creado exitosamente");
 	}
 }

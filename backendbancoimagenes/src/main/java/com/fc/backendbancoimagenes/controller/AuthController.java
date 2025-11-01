@@ -2,8 +2,10 @@ package com.fc.backendbancoimagenes.controller;
 
 import com.fc.backendbancoimagenes.dto.AuthRequest;
 import com.fc.backendbancoimagenes.dto.RegisterRequest;
+import com.fc.backendbancoimagenes.model.Equipo;
 import com.fc.backendbancoimagenes.model.LoginResponse;
 import com.fc.backendbancoimagenes.model.Usuario;
+import com.fc.backendbancoimagenes.repository.EquipoRepository;
 import com.fc.backendbancoimagenes.repository.UserRepository;
 import com.fc.backendbancoimagenes.security.JwtService;
 import com.fc.backendbancoimagenes.service.PasswordAuditService;
@@ -62,6 +64,9 @@ public class AuthController {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+    
+    @Autowired
+    private EquipoRepository equipoRepository;
 
     @PostMapping("/nuevo")
     @PreAuthorize("hasRole('ADMIN')")
@@ -73,6 +78,14 @@ public class AuthController {
         Usuario user = new Usuario();
         user.setUsername(request.getUsername());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setEmail(request.getEmail());
+        user.setRol(request.getRol());
+        user.setActivo(true);
+        
+        Equipo equipo = equipoRepository.findById(request.getEquipoId())
+        		.orElseThrow(() -> new RuntimeException("Equipo no encontrado"));
+        user.setEquipo(equipo);
+        
         userRepository.save(user);
         
         String encrypted = EncriptacionUtil.Encriptacion(request.getPassword());

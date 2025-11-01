@@ -1,5 +1,6 @@
 package com.fc.backendbancoimagenes.model;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
@@ -31,7 +32,26 @@ public class Usuario implements UserDetails {
     
     @Column(nullable = false)
     private boolean activo;
+    
+    @Column(updatable = false)
+    private LocalDateTime fechaCreacion;
 
+    private LocalDateTime fechaEliminacion;
+
+    @ManyToOne
+    @JoinColumn(name = "equipo_id")
+    private Equipo equipo;
+
+    @PrePersist
+    protected void onCreate() {
+      this.fechaCreacion = LocalDateTime.now();
+    }
+
+    public void eliminarLogicamente() {
+      this.activo = false;
+      this.fechaEliminacion = LocalDateTime.now();
+    }
+    
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
 		return List.of(new SimpleGrantedAuthority("ROLE_" + rol.toUpperCase()));
@@ -105,6 +125,30 @@ public class Usuario implements UserDetails {
 
 	public void setActivo(boolean activo) {
 		this.activo = activo;
+	}
+
+	public LocalDateTime getFechaCreacion() {
+		return fechaCreacion;
+	}
+
+	public void setFechaCreacion(LocalDateTime fechaCreacion) {
+		this.fechaCreacion = fechaCreacion;
+	}
+
+	public LocalDateTime getFechaEliminacion() {
+		return fechaEliminacion;
+	}
+
+	public void setFechaEliminacion(LocalDateTime fechaEliminacion) {
+		this.fechaEliminacion = fechaEliminacion;
+	}
+
+	public Equipo getEquipo() {
+		return equipo;
+	}
+
+	public void setEquipo(Equipo equipo) {
+		this.equipo = equipo;
 	}
     
     
