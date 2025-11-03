@@ -7,6 +7,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -23,6 +25,8 @@ public class PasswordAudit {
 	private String encrypPassword;
 	
 	private LocalDateTime createdAt;
+	
+	
 
 	public Long getId() {
 		return id;
@@ -55,7 +59,8 @@ public class PasswordAudit {
 	public void setCreatedAt(LocalDateTime createdAt) {
 		this.createdAt = createdAt;
 	}
-	
+
+
 	
 
 }

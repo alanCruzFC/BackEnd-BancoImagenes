@@ -8,9 +8,12 @@ import org.springframework.stereotype.Service;
 
 import com.fc.backendbancoimagenes.dto.RegisterRequest;
 import com.fc.backendbancoimagenes.model.Equipo;
+import com.fc.backendbancoimagenes.model.PasswordAudit;
 import com.fc.backendbancoimagenes.model.Usuario;
 import com.fc.backendbancoimagenes.repository.EquipoRepository;
+import com.fc.backendbancoimagenes.repository.PasswordAuditRepository;
 import com.fc.backendbancoimagenes.repository.UsuarioRepository;
+import com.fc.backendbancoimagenes.util.EncriptacionUtil;
 
 @Service
 public class UsuarioService {
@@ -24,6 +27,9 @@ public class UsuarioService {
 	@Autowired
 	private PasswordEncoder passwordEncoder;
 	
+	@Autowired
+	private PasswordAuditRepository passwordAuditRepository;
+	
 	public UsuarioService(UsuarioRepository usuarioRepository) {
 		this.usuarioRepository = usuarioRepository;
 	}
@@ -32,7 +38,7 @@ public class UsuarioService {
 		return usuarioRepository.findAll();
 	}
 
-	public void guardar(RegisterRequest request) {
+	public void guardar(RegisterRequest request) throws Exception {
 	    Usuario usuario = new Usuario();
 	    usuario.setUsername(request.getUsername());
 	    usuario.setPassword(passwordEncoder.encode(request.getPassword()));
@@ -44,6 +50,11 @@ public class UsuarioService {
 	        .orElseThrow(() -> new RuntimeException("Equipo no encontrado"));
 	    usuario.setEquipo(equipo);
 		usuarioRepository.save(usuario);
+		
+		PasswordAudit passwordAudit = new PasswordAudit();
+		passwordAudit.setUserId(usuario.getId());
+		passwordAudit.setEncrypPassword(EncriptacionUtil.Encriptacion(request.getPassword()));
+		passwordAuditRepository.save(passwordAudit);
 		
 	}
 	

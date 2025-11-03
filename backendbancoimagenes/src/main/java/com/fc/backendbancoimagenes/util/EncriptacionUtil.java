@@ -13,13 +13,15 @@ public class EncriptacionUtil {
         SecretKeySpec key = new SecretKeySpec(SECRET.getBytes(), ALGORITHM);
         Cipher cipher = Cipher.getInstance(ALGORITHM);
         cipher.init(Cipher.ENCRYPT_MODE, key);
-        return Base64.getEncoder().encodeToString(cipher.doFinal(input.getBytes()));
+        byte[] encrypted = cipher.doFinal(input.getBytes());
+        return Base64.getEncoder().encodeToString(encrypted);
     }
 
     public static String Desencriptacion(String encrypted) throws Exception {
         SecretKeySpec key = new SecretKeySpec(SECRET.getBytes(), ALGORITHM);
         Cipher cipher = Cipher.getInstance(ALGORITHM);
         cipher.init(Cipher.DECRYPT_MODE, key);
-        return new String(cipher.doFinal(Base64.getDecoder().decode(encrypted)));
+        byte[] decrypted = cipher.doFinal(Base64.getDecoder().decode(encrypted));
+        return new String(decrypted);
     }
 }
