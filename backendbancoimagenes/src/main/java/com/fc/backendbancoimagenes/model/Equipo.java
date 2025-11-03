@@ -2,6 +2,8 @@ package com.fc.backendbancoimagenes.model;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -24,6 +26,7 @@ public class Equipo {
 	  private Usuario jefe;
 
 	  @OneToMany(mappedBy = "equipo")
+	  @JsonIgnore
 	  private List<Usuario> usuarios;
 
 	  public Long getId() {

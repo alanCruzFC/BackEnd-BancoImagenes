@@ -2,6 +2,7 @@ package com.fc.backendbancoimagenes.service;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.fc.backendbancoimagenes.dto.EquipoRequest;
@@ -13,8 +14,10 @@ import com.fc.backendbancoimagenes.repository.UsuarioRepository;
 @Service
 public class EquipoService {
 	
+	@Autowired
 	private EquipoRepository equipoRepository;
 	
+	@Autowired
 	private UsuarioRepository usuarioRepository;
 	
 	public void crearEquipo(EquipoRequest request) {

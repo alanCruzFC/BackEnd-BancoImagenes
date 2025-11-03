@@ -30,6 +30,13 @@ public class UsuarioController {
     UsuarioController(PasswordEncoder passwordEncoder) {
         this.passwordEncoder = passwordEncoder;
     }
+    
+    @PostMapping("/nuevo")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<String> crear(@RequestBody RegisterRequest request) {
+        usuarioService.guardar(request);
+        return ResponseEntity.ok("Usuario creado exitosamente");
+    }
 	
 	@GetMapping
 	public List<Usuario> listar() {

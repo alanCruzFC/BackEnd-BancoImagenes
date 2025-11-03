@@ -39,7 +39,7 @@ public class UsuarioService {
 	    usuario.setEmail(request.getEmail());
 	    usuario.setRol(request.getRol());
 	    usuario.setActivo(true);
-
+	    
 	    Equipo equipo = equipoRepository.findById(request.getEquipoId())
 	        .orElseThrow(() -> new RuntimeException("Equipo no encontrado"));
 	    usuario.setEquipo(equipo);
