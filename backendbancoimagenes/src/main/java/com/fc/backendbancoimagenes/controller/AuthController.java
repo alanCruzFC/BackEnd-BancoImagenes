@@ -3,7 +3,7 @@ package com.fc.backendbancoimagenes.controller;
 import com.fc.backendbancoimagenes.dto.AuthRequest;
 import com.fc.backendbancoimagenes.dto.RegisterRequest;
 import com.fc.backendbancoimagenes.model.Equipo;
-import com.fc.backendbancoimagenes.model.LoginResponse;
+import com.fc.backendbancoimagenes.dto.LoginResponse;
 import com.fc.backendbancoimagenes.model.Usuario;
 import com.fc.backendbancoimagenes.repository.EquipoRepository;
 import com.fc.backendbancoimagenes.repository.UserRepository;
@@ -95,4 +95,3 @@ public class AuthController {
     }
 
 }
-

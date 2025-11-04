@@ -1,4 +1,4 @@
-package com.fc.backendbancoimagenes.model;
+package com.fc.backendbancoimagenes.dto;
 
 public class LoginRequest {
 	

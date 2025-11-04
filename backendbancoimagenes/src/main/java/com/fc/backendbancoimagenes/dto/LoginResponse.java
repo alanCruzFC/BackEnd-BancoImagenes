@@ -1,13 +1,14 @@
-package com.fc.backendbancoimagenes.model;
+package com.fc.backendbancoimagenes.dto;
 
 public class LoginResponse {
-	  private String token;
+	  
+	private String token;
 
-	  public LoginResponse(String token) {
+	public LoginResponse(String token) {
 	    this.token = token;
-	  }
-
-	  public String getToken() {
-	    return token;
-	  }
 	}
+
+	public String getToken() {
+	    return token;
+	}
+}

@@ -64,4 +64,3 @@ public class JwtService {
         return extractExpiration(token).before(new Date());
     }
 }
-

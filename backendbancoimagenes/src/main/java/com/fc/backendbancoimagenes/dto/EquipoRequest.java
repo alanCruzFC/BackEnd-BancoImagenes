@@ -16,8 +16,4 @@ public class EquipoRequest {
 	public void setJefeId(Long jefeId) {
 		this.jefeId = jefeId;
 	}
-	
-	
-	
-
 }
