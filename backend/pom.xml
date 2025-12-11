@@ -13,7 +13,7 @@
   </parent>
 
   <groupId>com.fc</groupId>
-  <artifactId>apibanco</artifactId>
+  <artifactId>backend-apibanco</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <name>apibanco</name>
   <description>banco de archivos</description>
