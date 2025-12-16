@@ -45,6 +45,7 @@ import com.fc.apibanco.repository.MetadataRepository;
 import com.fc.apibanco.repository.RegistroRepository;
 import com.fc.apibanco.repository.UsuarioRepository;
 import com.fc.apibanco.util.AESUtil;
+import com.fc.apibanco.util.Constantes;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -71,7 +72,7 @@ public class ArchivoController {
 	public ResponseEntity<List<ArchivoDTO>> visualizar(@PathVariable String numeroSolicitud,
 	                                    @AuthenticationPrincipal UserDetails userDetails) throws IOException {
 
-	    Path carpeta = Paths.get("Archivos", numeroSolicitud);
+	    Path carpeta = Paths.get(Constantes.ARCHIVOS_CARP, numeroSolicitud);
 	    if (!Files.exists(carpeta)) {
 	    	return ResponseEntity.ok(Collections.emptyList());
 	    }
@@ -126,7 +127,7 @@ public class ArchivoController {
 	    }
 
 	    numeroSolicitud = numeroSolicitud.trim();
-	    Path carpeta = Paths.get("Archivos", numeroSolicitud);
+	    Path carpeta = Paths.get(Constantes.ARCHIVOS_CARP, numeroSolicitud);
 	    Files.createDirectories(carpeta);
 
 	    Set<String> extensionesPermitidas = Set.of("jpg","jpeg","png","pdf","docx","xlsx");
@@ -168,7 +169,7 @@ public class ArchivoController {
 	    String nombreLogico = tipo + "_" + numeroSolicitud + "." + extension;
 	    ArchivoDTO dto = new ArchivoDTO(nombreLogico, "/api/descargar/" + numeroSolicitud + "/" + nombreSeguro);
 
-	    return ResponseEntity.ok(Map.of("mensaje", "Archivo subido correctamente", "archivo", dto));
+	    return ResponseEntity.ok(Map.of("mensaje", "Archivo subido correctamente", Constantes.ARCHIVOS_CARP, dto));
 	}
 	
 	//-----------------------CARGAR MULTIPLES IMAGENES AL MISMO TIEMPO------------------------------------
@@ -209,7 +210,7 @@ public class ArchivoController {
 	    }
 
 	    numeroSolicitud = numeroSolicitud.trim();
-	    Path carpeta = Paths.get("Archivos", numeroSolicitud);
+	    Path carpeta = Paths.get(Constantes.ARCHIVOS_CARP, numeroSolicitud);
 	    Files.createDirectories(carpeta);
 
 	    List<ArchivoDTO> archivosSubidos = new ArrayList<>();
@@ -260,7 +261,7 @@ public class ArchivoController {
 	    }
 
 
-	    return ResponseEntity.ok(Map.of("mensaje", "Archivos subidos correctamente", "archivos", archivosSubidos));
+	    return ResponseEntity.ok(Map.of("mensaje", "Archivos subidos correctamente", Constantes.ARCHIVOS_CARP, archivosSubidos));
 	}
 	
 	//-----------------------LISTAR REGISTROS-------------------------------------------------------------
@@ -342,7 +343,7 @@ public class ArchivoController {
 	        .filter(c -> !c.equalsIgnoreCase(registro.getCreador().getEmail()))
 	        .toList();
 
-	    Path carpeta = Paths.get("Archivos", numeroSolicitud);
+	    Path carpeta = Paths.get(Constantes.ARCHIVOS_CARP, numeroSolicitud);
 	    List<ArchivoDTO> archivos = Files.exists(carpeta)
 	        ? Files.list(carpeta)
 	            .filter(Files::isRegularFile)
@@ -428,7 +429,7 @@ public class ArchivoController {
 	        @PathVariable String nombreArchivo,
 	        @RequestParam(defaultValue = "false") boolean inline) throws IOException {
 
-	    Path ruta = Paths.get("Archivos", numeroSolicitud).resolve(nombreArchivo).normalize();
+	    Path ruta = Paths.get(Constantes.ARCHIVOS_CARP, numeroSolicitud).resolve(nombreArchivo).normalize();
 	    Resource recurso = new UrlResource(ruta.toUri());
 
 	    if (!recurso.exists()) {
