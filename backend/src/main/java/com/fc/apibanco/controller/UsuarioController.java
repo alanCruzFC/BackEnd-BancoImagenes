@@ -33,11 +33,13 @@ import com.fc.apibanco.util.AESUtil;
 @RequestMapping("/api")
 public class UsuarioController {
 	
-	@Autowired
-	private UsuarioRepository usuarioRepository;
+	private final UsuarioRepository usuarioRepository;	
+	private final PasswordEncoder passwordEncoder;
 	
-	@Autowired
-	private PasswordEncoder passwordEncoder;
+	public UsuarioController(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
+		this.usuarioRepository = usuarioRepository;
+		this.passwordEncoder = passwordEncoder;
+	}
 	
 //---------------------------CREAR USUARIOS------------------------------------------------------------------------------------
 	
