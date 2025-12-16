@@ -174,7 +174,7 @@ public class ArchivoController {
 	//-----------------------CARGAR MULTIPLES IMAGENES AL MISMO TIEMPO------------------------------------
 	
 	@PostMapping("/subir-multiple/{numeroSolicitud}")
-	public ResponseEntity<?> subirDocumentos(@PathVariable String numeroSolicitud,
+	public ResponseEntity<Map<String, Object>> subirDocumentos(@PathVariable String numeroSolicitud,
 	                                         @RequestParam("archivos") List<MultipartFile> archivos,
 	                                         @RequestParam("tipos") List<String> tipos,
 	                                         @AuthenticationPrincipal UserDetails userDetails,
