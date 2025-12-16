@@ -87,7 +87,7 @@ public class ArchivoController {
 //----------------------CARGAR IMAGENES AL SERVIDOR Y METADATA------------------------------------	
 	
 	@PostMapping("/subir/{numeroSolicitud}")
-	public ResponseEntity<?> subirImagen(@PathVariable String numeroSolicitud,
+	public ResponseEntity<Map<String, Object>> subirImagen(@PathVariable String numeroSolicitud,
 	                                     @RequestParam("tipo") String tipo,
 	                                     @RequestParam("archivo") MultipartFile archivo,
 	                                     @AuthenticationPrincipal UserDetails userDetails,
