@@ -68,7 +68,7 @@ public class ArchivoController {
 //------------------------VIZUALIZAR LAS IMAGENES -----------------------------------------------
     
 	@GetMapping("/visualizar/{numeroSolicitud}")
-	public ResponseEntity<?> visualizar(@PathVariable String numeroSolicitud,
+	public ResponseEntity<List<ArchivoDTO>> visualizar(@PathVariable String numeroSolicitud,
 	                                    @AuthenticationPrincipal UserDetails userDetails) throws IOException {
 
 	    Path carpeta = Paths.get("Archivos", numeroSolicitud);
