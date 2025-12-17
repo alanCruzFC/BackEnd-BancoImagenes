@@ -100,7 +100,7 @@ public class ArchivoController {
 	    Usuario usuario;
 	    if (userDetails != null) {
 	        usuario = usuarioRepository.findByUsername(userDetails.getUsername())
-	            .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuario no válido"));
+	            .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, Constantes.NO_AUTORIZADO));
 
 	        String rol = usuario.getRol();
 	        boolean accesoPermitido = rol.equals(Constantes.ADMIN) ||
@@ -188,7 +188,7 @@ public class ArchivoController {
 
 	    if (userDetails != null) {
 	        usuario = usuarioRepository.findByUsername(userDetails.getUsername())
-	            .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuario no válido"));
+	            .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, Constantes.NO_AUTORIZADO));
 
 	        String rol = usuario.getRol();
 	        boolean accesoPermitido = rol.equals(Constantes.ADMIN) ||
@@ -270,7 +270,7 @@ public class ArchivoController {
 	public ResponseEntity<List<RegistroDTO>> obtenerRegistros(@AuthenticationPrincipal UserDetails userDetails) {
 
 	    Usuario usuario = usuarioRepository.findByUsername(userDetails.getUsername())
-	        .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuario no válido"));
+	        .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, Constantes.NO_AUTORIZADO));
 
 	    String rol = usuario.getRol();
 	    String correoUsuario = usuario.getEmail();
@@ -332,7 +332,7 @@ public class ArchivoController {
 	        @AuthenticationPrincipal UserDetails userDetails) throws IOException {
 
 	    Usuario usuario = usuarioRepository.findByUsername(userDetails.getUsername())
-	        .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuario no válido"));
+	        .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, Constantes.NO_AUTORIZADO));
 
 	    Registro registro = registroRepository.findByNumeroSolicitudAndFechaEliminacionIsNull(numeroSolicitud)
 	        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, Constantes.NOT_FOUND));
@@ -376,7 +376,7 @@ public class ArchivoController {
 	public ResponseEntity<List<UsuarioDTO>> listarUsuarios(@AuthenticationPrincipal UserDetails userDetails) {
 
 	    Usuario admin = usuarioRepository.findByUsername(userDetails.getUsername())
-	        .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuario no válido"));
+	        .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, Constantes.NO_AUTORIZADO));
 
 	    if (!Constantes.ADMIN.equals(admin.getRol())) {
 	        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Acceso denegado");
