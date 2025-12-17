@@ -134,7 +134,7 @@ public class ArchivoController {
 
 	    String extension = FilenameUtils.getExtension(archivo.getOriginalFilename()).toLowerCase();
 	    if (!extensionesPermitidas.contains(extension)) {
-	    	return ResponseEntity .status(HttpStatus.BAD_REQUEST) .body(Map.of("mensaje", "Extensión no permitida: " + extension));
+	    	return ResponseEntity .status(HttpStatus.BAD_REQUEST) .body(Map.of(Constantes.MSG, "Extensión no permitida: " + extension));
 	    }
 
 	    String nombreSeguro = UUID.randomUUID().toString() + "." + extension;
@@ -167,9 +167,9 @@ public class ArchivoController {
 	    Files.copy(archivo.getInputStream(), destino, StandardCopyOption.REPLACE_EXISTING);
 
 	    String nombreLogico = tipo + "_" + numeroSolicitud + "." + extension;
-	    ArchivoDTO dto = new ArchivoDTO(nombreLogico, "/api/descargar/" + numeroSolicitud + "/" + nombreSeguro);
+	    ArchivoDTO dto = new ArchivoDTO(nombreLogico, Constantes.URL_DESC + numeroSolicitud + "/" + nombreSeguro);
 
-	    return ResponseEntity.ok(Map.of("mensaje", "Archivo subido correctamente", Constantes.ARCHIVOS_CARP, dto));
+	    return ResponseEntity.ok(Map.of(Constantes.MSG, "Archivo subido correctamente", Constantes.ARCHIVOS_CARP, dto));
 	}
 	
 	//-----------------------CARGAR MULTIPLES IMAGENES AL MISMO TIEMPO------------------------------------
@@ -224,7 +224,7 @@ public class ArchivoController {
 	        if (!extensionesPermitidas.contains(extension)) {
 	            return ResponseEntity
 	                .status(HttpStatus.BAD_REQUEST)
-	                .body(Map.of("mensaje", "Extensión no permitida: " + extension));
+	                .body(Map.of(Constantes.MSG, "Extensión no permitida: " + extension));
 	        }
 
 	        String nombreSeguro = UUID.randomUUID().toString() + "." + extension;
@@ -257,11 +257,11 @@ public class ArchivoController {
 	        Files.copy(archivo.getInputStream(), destino, StandardCopyOption.REPLACE_EXISTING);
 
 	        String nombreLogico = tipo + "_" + numeroSolicitud + "." + extension;
-	        archivosSubidos.add(new ArchivoDTO(nombreLogico, "/api/descargar/" + numeroSolicitud + "/" + nombreSeguro));
+	        archivosSubidos.add(new ArchivoDTO(nombreLogico, Constantes.URL_DESC + numeroSolicitud + "/" + nombreSeguro));
 	    }
 
 
-	    return ResponseEntity.ok(Map.of("mensaje", "Archivos subidos correctamente", Constantes.ARCHIVOS_CARP, archivosSubidos));
+	    return ResponseEntity.ok(Map.of(Constantes.MSG, "Archivos subidos correctamente", Constantes.ARCHIVOS_CARP, archivosSubidos));
 	}
 	
 	//-----------------------LISTAR REGISTROS-------------------------------------------------------------
@@ -348,7 +348,7 @@ public class ArchivoController {
 	        ? Files.list(carpeta)
 	            .filter(Files::isRegularFile)
 	            .map(path -> new ArchivoDTO(path.getFileName().toString(),
-	                                        "/api/descargar/" + numeroSolicitud + "/" + path.getFileName()))
+	                                        Constantes.URL_DESC + numeroSolicitud + "/" + path.getFileName()))
 	            .toList()
 	        : Collections.emptyList();
 
