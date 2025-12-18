@@ -21,6 +21,7 @@ import org.springframework.web.server.ResponseStatusException;
 import com.fc.apibanco.dto.ApiKeyRequest;
 import com.fc.apibanco.model.ApiKey;
 import com.fc.apibanco.repository.ApiKeyRepository;
+import com.fc.apibanco.util.Constantes;
 
 @CrossOrigin(origins = "http://localhost:4200", allowCredentials = "true")
 @RestController
@@ -61,7 +62,7 @@ public class ApiKeyController {
 	    apiKeyRepository.save(apiKey);
 	    
 	    return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
-	    		"mensaje", "API key Creada Exitosamente"
+	    		Constantes.MSG, "API key Creada Exitosamente"
 	    ));
 	}
 //-------------------------REGENERAR API KEY--------------------------------------------------------------------------
@@ -70,7 +71,7 @@ public class ApiKeyController {
 	public ResponseEntity<?> regenerarApiKey(@PathVariable Long id) {
 
 	    ApiKey apiKey = apiKeyRepository.findById(id)
-	        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "API key no encontrada"));
+	        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, Constantes.NOT_FOUND));
 
 	    String nuevaClave = UUID.randomUUID().toString().replace("-", "");
 	    apiKey.setClave(nuevaClave);
@@ -79,7 +80,7 @@ public class ApiKeyController {
 	    apiKeyRepository.save(apiKey);
 
 	    return ResponseEntity.ok(Map.of(
-	        "mensaje", "API key regenerada exitosamente",
+	        Constantes.MSG, "API key regenerada exitosamente",
 	        "nuevaClave", nuevaClave
 	    ));
 	}

@@ -26,6 +26,7 @@ import com.fc.apibanco.model.PasswordEncriptada;
 import com.fc.apibanco.model.Usuario;
 import com.fc.apibanco.repository.UsuarioRepository;
 import com.fc.apibanco.util.AESUtil;
+import com.fc.apibanco.util.Constantes;
 
 @CrossOrigin(origins = "http://localhost:4200", allowCredentials = "true")
 @RestController
@@ -74,7 +75,7 @@ public class UsuarioController {
 	    usuario.setTeam(request.getTeam());
 	    usuario.setDepartment(request.getDepartment());
 
-	    if("USER".equalsIgnoreCase(request.getRol())) {
+	    if(Constantes.USER.equalsIgnoreCase(request.getRol())) {
 	    	if (request.getSupervisorId() == null) {
 	    		throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Un usuario debe tener un supervisor asignado");
 	    	}
@@ -154,7 +155,7 @@ public class UsuarioController {
 	    Usuario admin = usuarioRepository.findByUsername(userDetails.getUsername())
 	        .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuario no válido"));
 
-	    if (!"ADMIN".equals(admin.getRol())) {
+	    if (!Constantes.ADMIN.equals(admin.getRol())) {
 	        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Acceso denegado");
 	    }
 
@@ -172,7 +173,7 @@ public class UsuarioController {
 	            u.getDepartment(),
 	            u.getSupervisor() != null ? u.getSupervisor().getId() : null,
 	            u.getSupervisor() != null ? u.getSupervisor().getFirstName() + " " + u.getSupervisor().getLastName() : null,
-	            null // passwordDesencriptada no aplica aquí
+	            null
 	        ))
 	        .toList();
 
@@ -206,7 +207,7 @@ public class UsuarioController {
 	@GetMapping("/supervisores")
 	public List<UsuarioDTO> listarSupervisores() {
 	    return usuarioRepository.findAll().stream()
-	        .filter(u -> "SUPERVISOR".equals(u.getRol()))
+	        .filter(u -> Constantes.SUPERVISOR.equals(u.getRol()))
 	        .map(u -> new UsuarioDTO(
 	            u.getId(),
 	            u.getUsername(),

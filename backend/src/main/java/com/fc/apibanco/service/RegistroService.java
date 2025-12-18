@@ -18,6 +18,7 @@ import com.fc.apibanco.model.Registro;
 import com.fc.apibanco.model.Usuario;
 import com.fc.apibanco.repository.RegistroRepository;
 import com.fc.apibanco.repository.UsuarioRepository;
+import com.fc.apibanco.util.Constantes;
 
 @Service
 public class RegistroService {
@@ -30,7 +31,7 @@ public class RegistroService {
     	this.usuarioRepository = usuarioRepository;
     }
 
-    private static final Path BASE_PATH = Paths.get("Archivos").normalize();
+    private static final Path BASE_PATH = Paths.get(Constantes.ARCHIVOS_CARP).normalize();
 
     public Registro crearRegistro(RegistroRequest request, String creadorUsername) {
         String numeroSolicitud = request.getNumeroSolicitud().trim();
@@ -49,7 +50,7 @@ public class RegistroService {
             creador = new Usuario();
             creador.setUsername(creadorUsername);
             creador.setEmail(creadorUsername);
-            creador.setRol("USER");
+            creador.setRol(Constantes.USER);
             creador.setActivo(true);
             creador.setPasswordHash(null);
             creador.setPasswordEncriptada(null);
@@ -89,7 +90,7 @@ public class RegistroService {
                 Usuario nuevo = new Usuario();
                 nuevo.setUsername(correo);
                 nuevo.setEmail(correo);
-                nuevo.setRol("USER");
+                nuevo.setRol(Constantes.USER);
                 nuevo.setActivo(true);
                 return usuarioRepository.save(nuevo);
             });
