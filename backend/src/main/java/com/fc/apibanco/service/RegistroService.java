@@ -27,8 +27,8 @@ public class RegistroService {
     private final RegistroRepository registroRepository;
     
     public RegistroService(UsuarioRepository usuarioRepository, RegistroRepository registroRepository) {
-    	this.registroRepository = registroRepository;
-    	this.usuarioRepository = usuarioRepository;
+        this.registroRepository = registroRepository;
+        this.usuarioRepository = usuarioRepository;
     }
 
     private static final Path BASE_PATH = Paths.get(Constantes.ARCHIVOS_CARP).normalize();
@@ -36,6 +36,20 @@ public class RegistroService {
     public Registro crearRegistro(RegistroRequest request, String creadorUsername) {
         String numeroSolicitud = request.getNumeroSolicitud().trim();
 
+        // ---------------- VALIDACIÓN DE ROL ----------------
+        Usuario creador = usuarioRepository.findByEmail(creadorUsername)
+            .orElseGet(() -> usuarioRepository.findByUsername(creadorUsername).orElse(null));
+
+        if (creador != null) {
+            String rol = creador.getRol();
+            if (Constantes.ADMIN.equalsIgnoreCase(rol)) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "El rol ADMIN no puede crear registros");
+            }
+            // SUPERADMIN, USER y SUPERVISOR sí pueden continuar
+        }
+
+        // ---------------- VALIDAR DUPLICADOS ----------------
         Optional<Registro> existente = registroRepository
             .findByNumeroSolicitudAndFechaEliminacionIsNull(numeroSolicitud);
         if (existente.isPresent()) {
@@ -43,9 +57,7 @@ public class RegistroService {
                 "Ya existe un registro con el número de solicitud " + numeroSolicitud);
         }
 
-        Usuario creador = usuarioRepository.findByEmail(creadorUsername)
-            .orElseGet(() -> usuarioRepository.findByUsername(creadorUsername).orElse(null));
-
+        // ---------------- CREAR USUARIO SI NO EXISTE ----------------
         if (creador == null) {
             creador = new Usuario();
             creador.setUsername(creadorUsername);
@@ -57,6 +69,7 @@ public class RegistroService {
             creador = usuarioRepository.save(creador);
         }
 
+        // ---------------- CREAR CARPETA ----------------
         Path carpeta = BASE_PATH.resolve(numeroSolicitud).normalize();
         if (!carpeta.startsWith(BASE_PATH)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
@@ -69,6 +82,7 @@ public class RegistroService {
             throw new RuntimeException("No se pudo crear la carpeta para la solicitud " + numeroSolicitud, e);
         }
 
+        // ---------------- CREAR REGISTRO ----------------
         Registro registro = new Registro();
         registro.setNumeroSolicitud(numeroSolicitud);
         registro.setFechaCreacion(LocalDateTime.now());
@@ -85,8 +99,9 @@ public class RegistroService {
             .toList();
         registro.setCorreosAutorizados(autorizados);
 
+        // ---------------- CREAR USUARIOS AUTORIZADOS ----------------
         for (String correo : request.getCorreosAutorizados()) {
-            Usuario usuario = usuarioRepository.findByEmail(correo).orElseGet(() -> {
+            usuarioRepository.findByEmail(correo).orElseGet(() -> {
                 Usuario nuevo = new Usuario();
                 nuevo.setUsername(correo);
                 nuevo.setEmail(correo);

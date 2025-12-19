@@ -20,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -68,12 +69,13 @@ public class ArchivoController {
 	
 //----------------------CARGAR IMAGENES AL SERVIDOR Y METADATA------------------------------------	
 	
-	@PostMapping("/subir/{numeroSolicitud}")
-	public ResponseEntity<Map<String, Object>> subirImagen(@PathVariable String numeroSolicitud,
-	                                                       @RequestParam("tipo") String tipo,
-	                                                       @RequestParam("archivo") MultipartFile archivo,
-	                                                       @AuthenticationPrincipal UserDetails userDetails,
-	                                                       HttpServletRequest request) throws IOException {
+    @PostMapping("/subir/{numeroSolicitud}") 
+    @PreAuthorize("hasRole('SUPERADMIN')") 
+    public ResponseEntity<Map<String, Object>> subirImagen(@PathVariable String numeroSolicitud, 
+		    											   @RequestParam("tipo") String tipo, 
+		    											   @RequestParam("archivo") MultipartFile archivo, 
+		    											   @AuthenticationPrincipal UserDetails userDetails, 
+		    											   HttpServletRequest request) throws IOException {
 
 	    // ---------------- VALIDAR REGISTRO ----------------
 	    Registro registro = registroRepository.findByNumeroSolicitudAndFechaEliminacionIsNull(numeroSolicitud)
@@ -155,12 +157,13 @@ public class ArchivoController {
 	
 	//-----------------------CARGAR MULTIPLES IMAGENES AL MISMO TIEMPO------------------------------------
 	
-	@PostMapping("/subir-multiple/{numeroSolicitud}")
-	public ResponseEntity<Map<String, Object>> subirDocumentos(@PathVariable String numeroSolicitud,
-	                                                           @RequestParam("archivos") List<MultipartFile> archivos,
-	                                                           @RequestParam("tipos") List<String> tipos,
-	                                                           @AuthenticationPrincipal UserDetails userDetails,
-	                                                           HttpServletRequest request) throws IOException {
+    @PostMapping("/subir-multiple/{numeroSolicitud}") 
+    @PreAuthorize("hasRole('SUPERADMIN')") 
+    public ResponseEntity<Map<String, Object>> subirDocumentos(@PathVariable String numeroSolicitud, 
+    														   @RequestParam("archivos") List<MultipartFile> archivos, 
+    														   @RequestParam("tipos") List<String> tipos, 
+    														   @AuthenticationPrincipal UserDetails userDetails, 
+    														   HttpServletRequest request) throws IOException {
 
 	    Registro registro = registroRepository.findByNumeroSolicitudAndFechaEliminacionIsNull(numeroSolicitud)
 	        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, Constantes.NOT_FOUND));
@@ -267,8 +270,9 @@ public class ArchivoController {
 	
 	//-----------------------LISTAR REGISTROS-------------------------------------------------------------
 	
-	@GetMapping("/registros")
-	public ResponseEntity<List<RegistroDTO>> obtenerRegistros(@AuthenticationPrincipal UserDetails userDetails) {
+    @GetMapping("/registros") 
+    @PreAuthorize("hasAnyRole('USER','SUPERVISOR','ADMIN','SUPERADMIN')") 
+    public ResponseEntity<List<RegistroDTO>> obtenerRegistros(@AuthenticationPrincipal UserDetails userDetails) {
 
 	    Usuario usuario = usuarioRepository.findByUsername(userDetails.getUsername())
 	        .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, Constantes.NO_AUTORIZADO));
@@ -277,8 +281,10 @@ public class ArchivoController {
 	    String correoUsuario = usuario.getEmail();
 
 	    List<Registro> registros;
-
-	    if (rol.equals(Constantes.ADMIN)) {
+	    
+	    if (rol.equals(Constantes.SUPERADMIN)) { 
+	    	registros = registroRepository.findByFechaEliminacionIsNull();
+	    } else if (rol.equals(Constantes.ADMIN)) {
 	        registros = registroRepository.findByFechaEliminacionIsNull();
 	    } else if (rol.equals(Constantes.USER)) {
 	        registros = registroRepository.findByFechaEliminacionIsNull().stream()
@@ -327,10 +333,10 @@ public class ArchivoController {
 	
 //--------------------------OBTENER REGISTRO POR NUMERO DE SOLICITUD-------------------------------------------------------------------------------------
 	
-	@GetMapping("/registros/{numeroSolicitud}")
-	public ResponseEntity<RegistroDTO> obtenerRegistro(
-	        @PathVariable String numeroSolicitud,
-	        @AuthenticationPrincipal UserDetails userDetails) throws IOException {
+    @GetMapping("/registros/{numeroSolicitud}") 
+    @PreAuthorize("hasAnyRole('USER','SUPERVISOR','ADMIN','SUPERADMIN')") 
+    public ResponseEntity<RegistroDTO> obtenerRegistro( @PathVariable String numeroSolicitud, 
+    													@AuthenticationPrincipal UserDetails userDetails) throws IOException {
 
 	    //--------Validar usuario autenticado--------
 	    Usuario usuario = usuarioRepository.findByUsername(userDetails.getUsername())
@@ -392,62 +398,55 @@ public class ArchivoController {
 	
 	//----------------------LISTAR USUARIOS Y MOSTRAR CONTRASEÑA -----------------------------------------------
 	
-	@GetMapping("/usuarios")
-	public ResponseEntity<List<UsuarioDTO>> listarUsuarios(@AuthenticationPrincipal UserDetails userDetails) {
-
-	    Usuario admin = usuarioRepository.findByUsername(userDetails.getUsername())
-	        .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, Constantes.NO_AUTORIZADO));
-
-	    if (!Constantes.ADMIN.equals(admin.getRol())) {
-	        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Acceso denegado");
-	    }
-
-	    List<Usuario> usuarios = usuarioRepository.findAll();
-
-	    List<UsuarioDTO> respuesta = usuarios.stream()
-	        .map(usuario -> {
-	            String desencriptada = null;
-	            PasswordEncriptada pass = usuario.getPasswordEncriptada();
-	            if (pass != null && pass.getHash() != null) {
-	                try {
-	                    desencriptada = desencriptar(pass.getHash());
-	                } catch (Exception e) {
-	                    desencriptada = "[Error al desencriptar]";
-	                }
-	            }
-
-	            return new UsuarioDTO(
-	                usuario.getId(),
-	                usuario.getUsername(),
-	                usuario.getFirstName(),
-	                usuario.getLastName(),
-	                usuario.getEmail(),
-	                usuario.getRol(),
-	                usuario.isActivo(),
-	                usuario.getTeam(),
-	                usuario.getDepartment(),
-	                usuario.getSupervisor() != null ? usuario.getSupervisor().getId() : null,
-	                usuario.getSupervisor() != null ? usuario.getSupervisor().getFirstName() + " " + usuario.getSupervisor().getLastName() : null,
-	                desencriptada
-	            );
-	        })
-	        .toList();
-
-	    return ResponseEntity.ok(respuesta);
-	}
-
-	private String desencriptar(String hash) {
-	    return AESUtil.decrypt(hash);
-	}
-
+    @GetMapping("/usuarios") 
+    @PreAuthorize("hasAnyRole('ADMIN','SUPERADMIN')") 
+    public ResponseEntity<List<UsuarioDTO>> listarUsuarios(@AuthenticationPrincipal UserDetails userDetails) { 
+    	Usuario solicitante = usuarioRepository.findByUsername(userDetails.getUsername()) 
+    			.orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, Constantes.NO_AUTORIZADO)); 
+    	
+    	// ✅ Permitimos tanto ADMIN como SUPERADMIN 
+    	if (!(Constantes.ADMIN.equals(solicitante.getRol()) || Constantes.SUPERADMIN.equals(solicitante.getRol()))) { 
+    		throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Acceso denegado"); 
+    		} 
+    	List<Usuario> usuarios = usuarioRepository.findAll(); 
+    	
+    	List<UsuarioDTO> respuesta = usuarios.stream()
+    			.map(usuario -> { 
+    				String desencriptada = null; 
+    				PasswordEncriptada pass = usuario.getPasswordEncriptada(); 
+    				if (pass != null && pass.getHash() != null) { 
+    					try { 
+    						desencriptada = AESUtil.decrypt(pass.getHash()); 
+    						} catch (Exception e) { 
+    							desencriptada = "[Error al desencriptar]";
+    							} 
+    					} 
+    				return new UsuarioDTO( 
+    						usuario.getId(), 
+    						usuario.getUsername(), 
+    						usuario.getFirstName(), 
+    						usuario.getLastName(), 
+    						usuario.getEmail(), 
+    						usuario.getRol(), 
+    						usuario.isActivo(), 
+    						usuario.getTeam(), 
+    						usuario.getDepartment(), 
+    						usuario.getSupervisor() != null ? usuario.getSupervisor().getId() : null, 
+    						usuario.getSupervisor() != null ? usuario.getSupervisor().getFirstName() + " " + usuario.getSupervisor().getLastName() : null, 
+    						desencriptada // ✅ ahora sí se devuelve la contraseña desencriptada 
+    					); 
+    				}) 
+    			.toList(); 
+    	return ResponseEntity.ok(respuesta); 
+    }
 	
 //	----------------------CARGAR IMAGENES PARA VISUALIZAR------------------------------------------
 
-	@GetMapping("/descargar/{numeroSolicitud}/{nombreArchivo}")
-	public ResponseEntity<Resource> descargarArchivo(
-	        @PathVariable String numeroSolicitud,
-	        @PathVariable String nombreArchivo,
-	        @RequestParam(defaultValue = "false") boolean inline) throws IOException {
+	@GetMapping("/descargar/{numeroSolicitud}/{nombreArchivo}") 
+	@PreAuthorize("permitAll()") 
+	public ResponseEntity<Resource> descargarArchivo( @PathVariable String numeroSolicitud, 
+													  @PathVariable String nombreArchivo, 
+													  @RequestParam(defaultValue = "false") boolean inline) throws IOException {
 
 	    Path ruta = Paths.get(Constantes.ARCHIVOS_CARP, numeroSolicitud).resolve(nombreArchivo).normalize();
 	    Resource recurso = new UrlResource(ruta.toUri());

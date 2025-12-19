@@ -22,4 +22,5 @@ public final class Constantes {
 	public static final Set<String> EXT_PER = 
 			Set.of("jpg","jpeg","png","gif","pdf","docx","xlsx");
 
+
 }

@@ -17,3 +17,4 @@ public interface MetadataRepository extends JpaRepository<Metadata, Long> {
 	
 	List<Metadata> findByRegistroAndActivoTrueAndFechaDesactivacionIsNull(Registro registro);
 }
+
