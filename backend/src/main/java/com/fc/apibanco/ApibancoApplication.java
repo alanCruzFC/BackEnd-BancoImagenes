@@ -9,6 +9,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import com.fc.apibanco.model.Usuario;
 import com.fc.apibanco.repository.UsuarioRepository;
 
+
 @SpringBootApplication
 public class ApibancoApplication {
 
