@@ -112,7 +112,7 @@ public class ArchivoController {
                         .body(Map.of(Constantes.MSG, "Tipo extra inválido por similitud con fijo: " + tipoExtra));
                 }
             }
-            if (tipoExtra.matches(".*\\d.*")) {
+            if (tipoExtra.chars().anyMatch(Character::isDigit)) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of(Constantes.MSG, "Tipo extra inválido: " + tipoExtra));
             }
