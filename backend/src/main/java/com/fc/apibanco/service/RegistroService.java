@@ -79,7 +79,7 @@ public class RegistroService {
         try {
             Files.createDirectories(carpeta);
         } catch (IOException e) {
-            throw new RuntimeException("No se pudo crear la carpeta para la solicitud " + numeroSolicitud, e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "No se pudo crear la carpeta para la solicitud " + numeroSolicitud, e);
         }
 
         // ---------------- CREAR REGISTRO ----------------
