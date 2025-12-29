@@ -226,20 +226,28 @@ public class ArchivoController {
 			
 			String tipoNormalizado = tipo.trim().toUpperCase();
 			validarTipo(userDetails, tipoNormalizado, tiposFijos);
-			
-			String extension = FilenameUtils.getExtension(archivo.getOriginalFilename()).toLowerCase();
+
+			// 2. Obtener extensión de forma segura
+			String originalName = archivo.getOriginalFilename();
+			String extension = "";
+			if (originalName != null) {
+			    extension = FilenameUtils.getExtension(originalName).toLowerCase();
+			}
 			validarExtension(extension, extensionesPermitidas);
 
+			// 3. Generar nombre seguro controlado por la aplicación
 			String nombreSeguro = UUID.randomUUID().toString() + "." + extension;
 
+			// 4. Construir ruta solo con datos internos (carpeta + nombreSeguro)
 			Path destino = carpeta.resolve(nombreSeguro).normalize();
-
 			validarRuta(destino, carpeta);
 
+			// 5. Auditoría y metadata
 			desactivarMetadatosPrevios(registro, tipoNormalizado);
 			Metadata metadata = crearMetadata(nombreSeguro, tipoNormalizado, registro, usuario);
 			metadataRepository.save(metadata);
 
+			// 6. Copiar archivo de forma segura
 			try (InputStream inputStream = archivo.getInputStream()) {
 			    Files.copy(inputStream, destino, StandardCopyOption.REPLACE_EXISTING);
 			}
@@ -295,6 +303,69 @@ public class ArchivoController {
         metadata.setActivo(true);
         return metadata;
     }
+
+	//-----------------------LISTAR REGISTROS-------------------------------------------------------------
+	
+    @GetMapping("/registros") 
+    @PreAuthorize("hasAnyRole('USER','SUPERVISOR','ADMIN','SUPERADMIN')") 
+    public ResponseEntity<List<RegistroDTO>> obtenerRegistro(@AuthenticationPrincipal UserDetails userDetails) {
+
+	    Usuario usuario = usuarioRepository.findByUsername(userDetails.getUsername())
+	        .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, Constantes.NO_AUTORIZADO));
+
+	    String rol = usuario.getRol();
+	    String correoUsuario = usuario.getEmail();
+
+	    List<Registro> registros;
+	    
+	    if (rol.equals(Constantes.SUPERADMIN)) { 
+	    	registros = registroRepository.findByFechaEliminacionIsNull();
+	    } else if (rol.equals(Constantes.ADMIN)) {
+	        registros = registroRepository.findByFechaEliminacionIsNull();
+	    } else if (rol.equals(Constantes.USER)) {
+	        registros = registroRepository.findByFechaEliminacionIsNull().stream()
+	            .filter(registro ->
+	                (registro.getCreador() != null && registro.getCreador().getUsername().equalsIgnoreCase(usuario.getUsername())) ||
+	                registro.getCorreosAutorizados().stream()
+	                    .map(CorreoAutorizado::getCorreo)
+	                    .anyMatch(correo -> correo.equalsIgnoreCase(correoUsuario)))
+	            .toList();
+	    } else if (rol.equals(Constantes.SUPERVISOR)) {
+	        registros = registroRepository.findByFechaEliminacionIsNull().stream()
+	                .filter(registro ->
+	                    (registro.getCreador() != null && registro.getCreador().getUsername().equalsIgnoreCase(usuario.getUsername())) ||
+	                    (registro.getCreador() != null && registro.getCreador().getSupervisor() != null &&
+	                     registro.getCreador().getSupervisor().getId().equals(usuario.getId())))
+	                .toList();
+	    } else {
+	        registros = registroRepository.findByFechaEliminacionIsNull().stream()
+	            .filter(registro ->
+	                registro.getCorreosAutorizados().stream()
+	                    .map(CorreoAutorizado::getCorreo)
+	                    .anyMatch(correo -> correo.equalsIgnoreCase(correoUsuario)))
+	            .toList();
+	    }
+
+	    List<RegistroDTO> respuesta = registros.stream()
+	        .map(registro -> {
+	            List<String> correos = correoAutorizadoRepository.findByRegistroId(registro.getId())
+	                .stream()
+	                .map(CorreoAutorizado::getCorreo)
+	                .filter(c -> !c.equalsIgnoreCase(registro.getCreador().getEmail()))
+	                .toList();
+
+	            return new RegistroDTO(
+	                registro.getNumeroSolicitud(),
+	                registro.getCarpetaRuta(),
+	                registro.getCreador() != null ? registro.getCreador().getUsername() : "Usuario Desconocido",
+	                registro.getFechaCreacion(),
+	                correos
+	            );
+	        })
+	        .toList();
+
+	    return ResponseEntity.ok(respuesta);
+	}
 	
 	//-----------------------LISTAR REGISTROS-------------------------------------------------------------
 	
