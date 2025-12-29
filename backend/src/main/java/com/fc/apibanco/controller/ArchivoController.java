@@ -244,6 +244,7 @@ public class ArchivoController {
 			    Files.copy(inputStream, destino, StandardCopyOption.REPLACE_EXISTING);
 			}
 
+
 			
 			String nombreLogico = tipoNormalizado + "_" + numeroSolicitud + "." + extension;
 			archivosSubidos.add(new ArchivoDTO(nombreLogico, Constantes.URL_DESC + numeroSolicitud + "/" + nombreSeguro));
