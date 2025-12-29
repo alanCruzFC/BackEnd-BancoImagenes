@@ -1,5 +1,7 @@
 package com.fc.apibanco;
 
+import java.util.logging.Logger;
+
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -12,6 +14,8 @@ import com.fc.apibanco.repository.UsuarioRepository;
 
 @SpringBootApplication
 public class ApibancoApplication {
+
+	Logger logger = Logger.getLogger(getClass().getName());
 
     public static void main(String[] args) {
         SpringApplication.run(ApibancoApplication.class, args);
@@ -36,7 +40,8 @@ public class ApibancoApplication {
     			superAdmin.setPasswordHash(passwordEncoder.encode(initPassword)); 
     			
     			usuarioRepository.save(superAdmin); 
-    			System.out.println("✅ Usuario SUPERADMIN inicial creado"); 
+				
+    			logger.info("✅ Usuario SUPERADMIN inicial creado con contraseña encriptada");
     		} 
     	}; 
     		
