@@ -1,7 +1,6 @@
 package com.fc.apibanco.controller;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -95,19 +94,16 @@ public class ArchivoController {
         Files.createDirectories(carpeta);
 
         // ---------------- TIPOS FIJOS ----------------
-        Set<String> tiposFijos = Constantes.TIPOS_FIJOS;
+        Set<String> tipos_fijos = Constantes.TIPOS_FIJOS;
 
         String tipoNormalizado = tipo.trim().toUpperCase();
 
         // ---------------- VALIDACIÓN DE TIPO ----------------
-        if (tiposFijos.contains(tipoNormalizado)) {
-            // documento fijo → se guarda normalizado
+        if (tipos_fijos.contains(tipoNormalizado)) {
         } else {
-            // documento extra → se guarda tal cual lo digitó el usuario
             String tipoExtra = tipo.trim();
 
-            // validar que no sea similar a un fijo
-            for (String fijo : tiposFijos) {
+            for (String fijo : tipos_fijos) {
                 if (tipoExtra.toUpperCase().startsWith(fijo)) {
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(Map.of(Constantes.MSG, "Tipo extra inválido por similitud con fijo: " + tipoExtra));
@@ -118,7 +114,6 @@ public class ArchivoController {
                     .body(Map.of(Constantes.MSG, "Tipo extra inválido: " + tipoExtra));
             }
 
-            // reasignar para que se guarde lo que digitó el usuario
             tipoNormalizado = tipoExtra;
         }
 
@@ -146,7 +141,7 @@ public class ArchivoController {
 
         Metadata metadata = new Metadata();
         metadata.setNombreArchivo(nombreSeguro);
-        metadata.setTipoDocumento(tipoNormalizado); // aquí ya se guarda fijo o extra según corresponda
+        metadata.setTipoDocumento(tipoNormalizado);
         metadata.setFechaSubida(LocalDateTime.now());
         metadata.setRegistro(registro);
         metadata.setSubidoPor(usuario);
@@ -160,6 +155,9 @@ public class ArchivoController {
 
         return ResponseEntity.ok(Map.of(Constantes.MSG, "Archivo subido correctamente", Constantes.ARCHIVOS_CARP, dto));
     }
+
+
+
 	
 	//-----------------------CARGAR MULTIPLES IMAGENES AL MISMO TIEMPO------------------------------------
 	
@@ -292,73 +290,16 @@ public class ArchivoController {
         return metadata;
     }
 
-	//-----------------------LISTAR REGISTROS-------------------------------------------------------------
-	
-    @GetMapping("/registros") 
-    @PreAuthorize("hasAnyRole('USER','SUPERVISOR','ADMIN','SUPERADMIN')") 
-    public ResponseEntity<List<RegistroDTO>> obtenerRegistro(@AuthenticationPrincipal UserDetails userDetails) {
 
-	    Usuario usuario = usuarioRepository.findByUsername(userDetails.getUsername())
-	        .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, Constantes.NO_AUTORIZADO));
 
-	    String rol = usuario.getRol();
-	    String correoUsuario = usuario.getEmail();
-
-	    List<Registro> registros;
-	    
-	    if (rol.equals(Constantes.SUPERADMIN)) { 
-	    	registros = registroRepository.findByFechaEliminacionIsNull();
-	    } else if (rol.equals(Constantes.ADMIN)) {
-	        registros = registroRepository.findByFechaEliminacionIsNull();
-	    } else if (rol.equals(Constantes.USER)) {
-	        registros = registroRepository.findByFechaEliminacionIsNull().stream()
-	            .filter(registro ->
-	                (registro.getCreador() != null && registro.getCreador().getUsername().equalsIgnoreCase(usuario.getUsername())) ||
-	                registro.getCorreosAutorizados().stream()
-	                    .map(CorreoAutorizado::getCorreo)
-	                    .anyMatch(correo -> correo.equalsIgnoreCase(correoUsuario)))
-	            .toList();
-	    } else if (rol.equals(Constantes.SUPERVISOR)) {
-	        registros = registroRepository.findByFechaEliminacionIsNull().stream()
-	                .filter(registro ->
-	                    (registro.getCreador() != null && registro.getCreador().getUsername().equalsIgnoreCase(usuario.getUsername())) ||
-	                    (registro.getCreador() != null && registro.getCreador().getSupervisor() != null &&
-	                     registro.getCreador().getSupervisor().getId().equals(usuario.getId())))
-	                .toList();
-	    } else {
-	        registros = registroRepository.findByFechaEliminacionIsNull().stream()
-	            .filter(registro ->
-	                registro.getCorreosAutorizados().stream()
-	                    .map(CorreoAutorizado::getCorreo)
-	                    .anyMatch(correo -> correo.equalsIgnoreCase(correoUsuario)))
-	            .toList();
-	    }
-
-	    List<RegistroDTO> respuesta = registros.stream()
-	        .map(registro -> {
-	            List<String> correos = correoAutorizadoRepository.findByRegistroId(registro.getId())
-	                .stream()
-	                .map(CorreoAutorizado::getCorreo)
-	                .filter(c -> !c.equalsIgnoreCase(registro.getCreador().getEmail()))
-	                .toList();
-
-	            return new RegistroDTO(
-	                registro.getNumeroSolicitud(),
-	                registro.getCarpetaRuta(),
-	                registro.getCreador() != null ? registro.getCreador().getUsername() : "Usuario Desconocido",
-	                registro.getFechaCreacion(),
-	                correos
-	            );
-	        })
-	        .toList();
-
-	    return ResponseEntity.ok(respuesta);
-	}
 	
 	//-----------------------LISTAR REGISTROS-------------------------------------------------------------
 	
     @GetMapping("/registros") 
     @PreAuthorize("hasAnyRole('USER','SUPERVISOR','ADMIN','SUPERADMIN')") 
+    
+    
+    
     public ResponseEntity<List<RegistroDTO>> obtenerRegistros(@AuthenticationPrincipal UserDetails userDetails) {
 
 	    Usuario usuario = usuarioRepository.findByUsername(userDetails.getUsername())
@@ -408,7 +349,7 @@ public class ArchivoController {
 	            return new RegistroDTO(
 	                registro.getNumeroSolicitud(),
 	                registro.getCarpetaRuta(),
-	                registro.getCreador() != null ? registro.getCreador().getUsername() : "Usuario Desconocido",
+	                registro.getCreador() != null ? registro.getCreador().getUsername() : Constantes.USER_DESC,
 	                registro.getFechaCreacion(),
 	                correos
 	            );
@@ -471,7 +412,7 @@ public class ArchivoController {
 	    RegistroDTO dto = new RegistroDTO(
 	        registro.getNumeroSolicitud(),
 	        registro.getCarpetaRuta(),
-	        registro.getCreador() != null ? registro.getCreador().getUsername() : "Usuario Desconocido",
+	        registro.getCreador() != null ? registro.getCreador().getUsername() : Constantes.USER_DESC,
 	        registro.getFechaCreacion(),
 	        correos
 	    );
@@ -480,8 +421,6 @@ public class ArchivoController {
 
 	    return ResponseEntity.ok(dto);
 	}
-
-
 	
 	//----------------------LISTAR USUARIOS Y MOSTRAR CONTRASEÑA -----------------------------------------------
 	
