@@ -18,6 +18,8 @@ public final class Constantes {
 	public static final String SUPERVISOR = "SUPERVISOR";
 	public static final String MSG = "Mensaje";
 	public static final String URL_DESC = "/api/descargar/";
+	public static final String URL_API = "/api/apikeys/**";
+	public static final String URL_USER = "/api/usuarios/**";
 	public static final Set<String> TIPOS_FIJOS = 
 		    Set.of("INE", "COMPROBANTE_DOMICILIO", "ESTADO_CUENTA", "FOTONEGOCIO1", "FOTONEGOCIO2", "SELFIE");
 	public static final Set<String> EXT_PER = 
