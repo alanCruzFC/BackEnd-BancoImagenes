@@ -100,6 +100,7 @@ public class ArchivoController {
 
         // ---------------- VALIDACIÓN DE TIPO ----------------
         if (tipos_fijos.contains(tipoNormalizado)) {
+			// No hacemos nada porque ya es un tipo fijo válido
         } else {
             String tipoExtra = tipo.trim();
 
