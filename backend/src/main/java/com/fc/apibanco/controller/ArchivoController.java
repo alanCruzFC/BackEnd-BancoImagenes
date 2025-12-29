@@ -1,6 +1,7 @@
 package com.fc.apibanco.controller;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -228,17 +229,21 @@ public class ArchivoController {
 			
 			String extension = FilenameUtils.getExtension(archivo.getOriginalFilename()).toLowerCase();
 			validarExtension(extension, extensionesPermitidas);
-			
+
 			String nombreSeguro = UUID.randomUUID().toString() + "." + extension;
+
 			Path destino = carpeta.resolve(nombreSeguro).normalize();
+
 			validarRuta(destino, carpeta);
-			
+
 			desactivarMetadatosPrevios(registro, tipoNormalizado);
-			
 			Metadata metadata = crearMetadata(nombreSeguro, tipoNormalizado, registro, usuario);
 			metadataRepository.save(metadata);
-			
-			Files.copy(archivo.getInputStream(), destino, StandardCopyOption.REPLACE_EXISTING);
+
+			try (InputStream inputStream = archivo.getInputStream()) {
+			    Files.copy(inputStream, destino, StandardCopyOption.REPLACE_EXISTING);
+			}
+
 			
 			String nombreLogico = tipoNormalizado + "_" + numeroSolicitud + "." + extension;
 			archivosSubidos.add(new ArchivoDTO(nombreLogico, Constantes.URL_DESC + numeroSolicitud + "/" + nombreSeguro));
@@ -289,7 +294,6 @@ public class ArchivoController {
         metadata.setActivo(true);
         return metadata;
     }
-
 	
 	//-----------------------LISTAR REGISTROS-------------------------------------------------------------
 	
