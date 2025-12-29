@@ -209,6 +209,7 @@ public class ArchivoController {
         }
         return usuario;
     }
+
     private List<ArchivoDTO> procesarArchivos(List<MultipartFile> archivos, List<String> tipos,
             UserDetails userDetails, Registro registro,
             Usuario usuario, Path carpeta, String numeroSolicitud) throws IOException {
@@ -226,33 +227,26 @@ public class ArchivoController {
 			
 			String tipoNormalizado = tipo.trim().toUpperCase();
 			validarTipo(userDetails, tipoNormalizado, tiposFijos);
-
-			String originalName = archivo.getOriginalFilename();
-			String extension = "";
 			
-			if (originalName != null) {
-			    extension = FilenameUtils.getExtension(originalName).toLowerCase();
-			}
+			String extension = FilenameUtils.getExtension(archivo.getOriginalFilename()).toLowerCase();
 			validarExtension(extension, extensionesPermitidas);
-
+			
 			String nombreSeguro = UUID.randomUUID().toString() + "." + extension;
-
 			Path destino = carpeta.resolve(nombreSeguro).normalize();
 			validarRuta(destino, carpeta);
-
+			
 			desactivarMetadatosPrevios(registro, tipoNormalizado);
+			
 			Metadata metadata = crearMetadata(nombreSeguro, tipoNormalizado, registro, usuario);
 			metadataRepository.save(metadata);
-
-			try (InputStream inputStream = archivo.getInputStream()) {
-			    Files.copy(inputStream, destino, StandardCopyOption.REPLACE_EXISTING);
-			}
-
+			
+			Files.copy(archivo.getInputStream(), destino, StandardCopyOption.REPLACE_EXISTING);
+			
 			String nombreLogico = tipoNormalizado + "_" + numeroSolicitud + "." + extension;
 			archivosSubidos.add(new ArchivoDTO(nombreLogico, Constantes.URL_DESC + numeroSolicitud + "/" + nombreSeguro));
 		}
 		return archivosSubidos;
-	}
+    }
     private void validarTipo(UserDetails userDetails, String tipoNormalizado, Set<String> tiposFijos) {
         if (userDetails == null) {
             if (!tiposFijos.contains(tipoNormalizado)) {
