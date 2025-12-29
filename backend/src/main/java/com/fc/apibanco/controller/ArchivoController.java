@@ -227,33 +227,27 @@ public class ArchivoController {
 			String tipoNormalizado = tipo.trim().toUpperCase();
 			validarTipo(userDetails, tipoNormalizado, tiposFijos);
 
-			// 2. Obtener extensión de forma segura
 			String originalName = archivo.getOriginalFilename();
 			String extension = "";
+			
 			if (originalName != null) {
 			    extension = FilenameUtils.getExtension(originalName).toLowerCase();
 			}
 			validarExtension(extension, extensionesPermitidas);
 
-			// 3. Generar nombre seguro controlado por la aplicación
 			String nombreSeguro = UUID.randomUUID().toString() + "." + extension;
 
-			// 4. Construir ruta solo con datos internos (carpeta + nombreSeguro)
 			Path destino = carpeta.resolve(nombreSeguro).normalize();
 			validarRuta(destino, carpeta);
 
-			// 5. Auditoría y metadata
 			desactivarMetadatosPrevios(registro, tipoNormalizado);
 			Metadata metadata = crearMetadata(nombreSeguro, tipoNormalizado, registro, usuario);
 			metadataRepository.save(metadata);
 
-			// 6. Copiar archivo de forma segura
 			try (InputStream inputStream = archivo.getInputStream()) {
 			    Files.copy(inputStream, destino, StandardCopyOption.REPLACE_EXISTING);
 			}
 
-
-			
 			String nombreLogico = tipoNormalizado + "_" + numeroSolicitud + "." + extension;
 			archivosSubidos.add(new ArchivoDTO(nombreLogico, Constantes.URL_DESC + numeroSolicitud + "/" + nombreSeguro));
 		}
