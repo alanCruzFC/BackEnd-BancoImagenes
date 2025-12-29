@@ -94,19 +94,19 @@ public class ArchivoController {
         Files.createDirectories(carpeta);
 
         // ---------------- TIPOS FIJOS ----------------
-        Set<String> tipos_fijos = Constantes.TIPOS_FIJOS;
+        Set<String> tiposFijos = Constantes.TIPOS_FIJOS;
 
         String tipoNormalizado = tipo.trim().toUpperCase();
 
         // ---------------- VALIDACIÓN DE TIPO ----------------
-        if (tipos_fijos.contains(tipoNormalizado)) {
+        if (tiposFijos.contains(tipoNormalizado)) {
             // documento fijo → se guarda normalizado
         } else {
             // documento extra → se guarda tal cual lo digitó el usuario
             String tipoExtra = tipo.trim();
 
             // validar que no sea similar a un fijo
-            for (String fijo : tipos_fijos) {
+            for (String fijo : tiposFijos) {
                 if (tipoExtra.toUpperCase().startsWith(fijo)) {
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body(Map.of(Constantes.MSG, "Tipo extra inválido por similitud con fijo: " + tipoExtra));
