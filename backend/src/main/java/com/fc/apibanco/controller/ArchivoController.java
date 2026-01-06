@@ -35,6 +35,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.fc.apibanco.dto.ArchivoDTO;
 import com.fc.apibanco.dto.RegistroDTO;
+import com.fc.apibanco.dto.TipoDocumentoStatusDTO;
 import com.fc.apibanco.dto.UsuarioDTO;
 import com.fc.apibanco.model.CorreoAutorizado;
 import com.fc.apibanco.model.Metadata;
@@ -100,7 +101,7 @@ public class ArchivoController {
 
         // ---------------- VALIDACIÓN DE TIPO ----------------
         if (tipos_fijos.contains(tipoNormalizado)) {
-			// No hacemos nada porque ya es un tipo fijo válido
+        	// No hacemos nada porque ya es un tipo fijo válido
         } else {
             String tipoExtra = tipo.trim();
 
@@ -152,7 +153,7 @@ public class ArchivoController {
         Files.copy(archivo.getInputStream(), destino, StandardCopyOption.REPLACE_EXISTING);
 
         String nombreLogico = tipoNormalizado + "_" + numeroSolicitud + "." + extension;
-        ArchivoDTO dto = new ArchivoDTO(nombreLogico, Constantes.URL_DESC + numeroSolicitud + "/" + nombreSeguro);
+        ArchivoDTO dto = new ArchivoDTO(nombreLogico, Constantes.URL_DESC + numeroSolicitud + "/" + nombreSeguro, tipoNormalizado);
 
         return ResponseEntity.ok(Map.of(Constantes.MSG, "Archivo subido correctamente", Constantes.ARCHIVOS_CARP, dto));
     }
@@ -176,17 +177,36 @@ public class ArchivoController {
 
         Usuario usuario = obtenerUsuario(userDetails, request, registro);
 
-        numeroSolicitud = numeroSolicitud.trim();
-        Path carpeta = Paths.get(Constantes.ARCHIVOS_CARP, numeroSolicitud);
+        final String solicitudNormalizada = numeroSolicitud.trim();
+
+        Path carpeta = Paths.get(Constantes.ARCHIVOS_CARP, solicitudNormalizada);
         Files.createDirectories(carpeta);
 
-        List<ArchivoDTO> archivosSubidos = procesarArchivos(archivos, tipos, userDetails, registro, usuario, carpeta, numeroSolicitud);
+        List<ArchivoDTO> archivosSubidos = procesarArchivos(
+                archivos, tipos, userDetails, registro, usuario, carpeta, solicitudNormalizada);
+
+        List<TipoDocumentoStatusDTO> status = Constantes.TIPOS_FIJOS.stream()
+            .map(tipo -> {
+                List<Metadata> metas = metadataRepository.findByRegistroAndTipoDocumentoAndActivoTrue(registro, tipo);
+                if (!metas.isEmpty()) {
+                    Metadata meta = metas.get(0);
+                    String url = Constantes.URL_DESC + solicitudNormalizada + "/" + meta.getNombreArchivo();
+                    return new TipoDocumentoStatusDTO(tipo, true);
+                } else {
+                    return new TipoDocumentoStatusDTO(tipo, false);
+                }
+            })
+            .toList();
 
         return ResponseEntity.ok(Map.of(
-                Constantes.MSG, "Archivos subidos correctamente",
-                Constantes.ARCHIVOS_CARP, archivosSubidos
+                Constantes.MSG, "Proceso de subida completado",
+                Constantes.ARCHIVOS_CARP, archivosSubidos,
+                "statusTipos", status
         ));
     }
+
+
+    
     private Usuario obtenerUsuario(UserDetails userDetails, HttpServletRequest request, Registro registro) {
         if (userDetails != null) {
             Usuario usuario = usuarioRepository.findByUsername(userDetails.getUsername())
@@ -242,7 +262,7 @@ public class ArchivoController {
 			Files.copy(archivo.getInputStream(), destino, StandardCopyOption.REPLACE_EXISTING);
 			
 			String nombreLogico = tipoNormalizado + "_" + numeroSolicitud + "." + extension;
-			archivosSubidos.add(new ArchivoDTO(nombreLogico, Constantes.URL_DESC + numeroSolicitud + "/" + nombreSeguro));
+			archivosSubidos.add(new ArchivoDTO(nombreLogico, Constantes.URL_DESC + numeroSolicitud + "/" + nombreSeguro, tipoNormalizado));
 		}
 		return archivosSubidos;
     }
@@ -291,16 +311,11 @@ public class ArchivoController {
         return metadata;
     }
 
-
-
 	
 	//-----------------------LISTAR REGISTROS-------------------------------------------------------------
 	
     @GetMapping("/registros") 
     @PreAuthorize("hasAnyRole('USER','SUPERVISOR','ADMIN','SUPERADMIN')") 
-    
-    
-    
     public ResponseEntity<List<RegistroDTO>> obtenerRegistros(@AuthenticationPrincipal UserDetails userDetails) {
 
 	    Usuario usuario = usuarioRepository.findByUsername(userDetails.getUsername())
@@ -399,7 +414,7 @@ public class ArchivoController {
 	                String extension = FilenameUtils.getExtension(meta.getNombreArchivo());
 	                String nombreVisual = meta.getTipoDocumento() + "_" + numeroSolicitud + "." + extension;
 	                String urlDescarga = Constantes.URL_DESC + numeroSolicitud + "/" + meta.getNombreArchivo();
-	                return new ArchivoDTO(nombreVisual, urlDescarga);
+	                return new ArchivoDTO(nombreVisual, urlDescarga, meta.getTipoDocumento());
 	            })
 	            .toList()
 	        : Collections.emptyList();
@@ -467,33 +482,42 @@ public class ArchivoController {
     	return ResponseEntity.ok(respuesta); 
     }
 	
-//	----------------------CARGAR IMAGENES PARA VISUALIZAR------------------------------------------
+//	----------------------DESCARGAR IMAGENES------------------------------------------
 
-	@GetMapping("/descargar/{numeroSolicitud}/{nombreArchivo}") 
-	@PreAuthorize("permitAll()") 
-	public ResponseEntity<Resource> descargarArchivo( @PathVariable String numeroSolicitud, 
-													  @PathVariable String nombreArchivo, 
-													  @RequestParam(defaultValue = "false") boolean inline) throws IOException {
+    @GetMapping("/descargar/{numeroSolicitud}/{nombreArchivo}")
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<Resource> descargarArchivo(
+            @PathVariable String numeroSolicitud,
+            @PathVariable String nombreArchivo,
+            @RequestParam(defaultValue = "false") boolean inline) throws IOException {
 
-	    Path ruta = Paths.get(Constantes.ARCHIVOS_CARP, numeroSolicitud).resolve(nombreArchivo).normalize();
-	    Resource recurso = new UrlResource(ruta.toUri());
+        Path ruta = Paths.get(Constantes.ARCHIVOS_CARP, numeroSolicitud).resolve(nombreArchivo).normalize();
+        Resource recurso = new UrlResource(ruta.toUri());
 
-	    if (!recurso.exists()) {
-	        return ResponseEntity.notFound().build();
-	    }
+        if (!recurso.exists()) {
+            return ResponseEntity.notFound().build();
+        }
 
-	    String contentType = Files.probeContentType(ruta);
-	    if (contentType == null) {
-	        contentType = "application/octet-stream";
-	    }
+        String contentType = Files.probeContentType(ruta);
+        if (contentType == null) {
+            contentType = "application/octet-stream";
+        }
 
-	    String disposition = inline
-	            ? "inline; filename=\"" + nombreArchivo + "\""
-	            : "attachment; filename=\"" + nombreArchivo + "\"";
+        Metadata metadata = metadataRepository.findByNombreArchivo(nombreArchivo)
+                .orElse(null);
 
-	    return ResponseEntity.ok()
-	            .contentType(MediaType.parseMediaType(contentType))
-	            .header(HttpHeaders.CONTENT_DISPOSITION, disposition)
-	            .body(recurso);
-	}
+        String tipoDocumento = metadata != null ? metadata.getTipoDocumento() : "archivo";
+        String extension = FilenameUtils.getExtension(nombreArchivo);
+        String nombreDescarga = tipoDocumento + "." + extension;
+
+        String disposition = inline
+                ? "inline; filename=\"" + nombreDescarga + "\""
+                : "attachment; filename=\"" + nombreDescarga + "\"";
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(contentType))
+                .header(HttpHeaders.CONTENT_DISPOSITION, disposition)
+                .body(recurso);
+    }
+
 }

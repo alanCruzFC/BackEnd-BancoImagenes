@@ -46,7 +46,6 @@ public class RegistroService {
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN,
                     "El rol ADMIN no puede crear registros");
             }
-            // SUPERADMIN, USER y SUPERVISOR sí pueden continuar
         }
 
         // ---------------- VALIDAR DUPLICADOS ----------------
@@ -101,7 +100,7 @@ public class RegistroService {
 
         // ---------------- CREAR USUARIOS AUTORIZADOS ----------------
         for (String correo : request.getCorreosAutorizados()) {
-            Usuario usuario = usuarioRepository.findByEmail(correo).orElseGet(() -> {
+        	Usuario usuario = usuarioRepository.findByEmail(correo).orElseGet(() -> {
                 Usuario nuevo = new Usuario();
                 nuevo.setUsername(correo);
                 nuevo.setEmail(correo);
