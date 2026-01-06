@@ -431,7 +431,7 @@ public class ArchivoController {
 	        correos
 	    );
 	    dto.setImagenes(archivos);
-	    dto.setEsDueño(esDueno);
+	    dto.setEsDueno(esDueno);
 
 	    return ResponseEntity.ok(dto);
 	}
